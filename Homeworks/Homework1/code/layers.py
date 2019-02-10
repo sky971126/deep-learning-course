@@ -326,7 +326,9 @@ def conv_forward(x, w):
     """
     The input consists of N data points, each with C channels, height H and
     width W. We convolve each input with F different filters, where each filter
-    spans all C channels and has height HH and width WW.
+    spans all C channels and has height HH and width WW. Assume that stride=1 
+    and there is no padding. You can ignore the bias term in your 
+    implementation.
 
     Input:
     - x: Input data of shape (N, C, H, W)
@@ -369,7 +371,7 @@ def conv_backward(dout, cache):
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-    return dx, dw, db
+    return dx, dw
 
 
 def max_pool_forward(x, pool_param):
