@@ -365,8 +365,3 @@ print('\nTesting max_pooling_backward function:')
 # The errors should be around 3e-12
 print('dx error: ', rel_error(dx_num, dx))
 
-<<<<<<< HEAD
-print(pool_param)
-=======
-
->>>>>>> upstream/master

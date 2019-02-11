@@ -364,7 +364,7 @@ def conv_forward(x, w):
 		for f in range(F):
 			for h_i in range(H_out):
 				for w_i in range(W_out):
-					out[i,f,h_i,w_i] = np.sum(x[i,:,h_i:h_i+HH,w_i:w_i+WW] * np.flip(w[f,:,:,:]))
+					out[i,f,h_i,w_i] = np.sum(x[i,:,h_i:h_i+HH,w_i:w_i+WW] * w[f,:,:,:])
 	###########################################################################
 	#                             END OF YOUR CODE                            #
 	###########################################################################
@@ -507,12 +507,12 @@ def svm_loss(x, y):
 	- dx: Gradient of the loss with respect to x
 	"""
 	N = y.shape[0]
-	loss_array = 1 - x[:,0] * y
+	loss_array = 1 - x * y
 	loss_array[loss_array < 0] = 0
 	loss = np.sum(loss_array) / N
 	dx = -1 * y
 	dx[loss_array == 0] = 0
-	dx = np.expand_dims(dx, axis=1) / N
+	#dx = np.expand_dims(dx, axis=1) / N
 	return loss, dx
 
 def logistic_loss(x, y):
