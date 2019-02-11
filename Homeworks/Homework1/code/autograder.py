@@ -161,7 +161,7 @@ print('dx error: ', rel_error(dx_num, dx))
 # Logistic loss
 np.random.seed(498)
 num_classes, num_inputs = 1, 50
-x = 0.001 * np.random.randn(num_inputs, num_classes)
+x = 0.001 * np.random.randn(num_inputs,)
 y = np.random.randint(num_classes + 1, size=num_inputs)
 for ite in range(num_inputs):
     if y[ite] == 0:
@@ -180,7 +180,7 @@ print('dx error: ', rel_error(dx_num, dx))
 # SVM loss
 np.random.seed(498)
 num_classes, num_inputs = 1, 50
-x = 0.001 * np.random.randn(num_inputs, num_classes)
+x = 0.001 * np.random.randn(num_inputs,)
 y = np.random.randint(num_classes + 1, size=num_inputs)
 for ite in range(num_inputs):
     if y[ite] == 0:
@@ -286,12 +286,12 @@ x = np.linspace(-0.1, 2.5, num=36).reshape(1,1,6,6)
 w = np.linspace(-0.9, 0.6, num=9).reshape(1,1,3,3)
 
 out, _ = conv_forward(x, w)
-correct_out = np.array([[[[-2.15485714, -2.25514286, -2.35542857, -2.45571429],
-   [-2.75657143, -2.85685714, -2.95714286, -3.05742857],
-   [-3.35828571, -3.45857143, -3.55885714, -3.65914286],
-   [-3.96,       -4.06028571, -4.16057143, -4.26085714]]]])
+correct_out = np.array([[[[ 1.02085714,  0.92057143,  0.82028571,  0.72      ],
+   [ 0.41914286,  0.31885714,  0.21857143,  0.11828571],
+   [-0.18257143, -0.28285714, -0.38314286, -0.48342857],
+   [-0.78428571, -0.88457143, -0.98485714, -1.08514286]]]])
 
-# Compare your output with ours. The error should be around 8e-10.
+# Compare your output with ours. The error should be around 2e-8.
 print('\nTesting conv_forward function:')
 print('difference: ', rel_error(out, correct_out))
 
@@ -313,7 +313,7 @@ _, cache = conv_forward(x, w)
 dx, dw = conv_backward(dout, cache)
 
 print('\nTesting conv_backward function:')
-# The errors should be around 5e-8
+# The errors should be around 3e-9
 print('dx error: ', rel_error(dx_num, dx))
 # The errors should be around 5e-10
 print('dw error: ', rel_error(dw_num, dw))
@@ -365,4 +365,8 @@ print('\nTesting max_pooling_backward function:')
 # The errors should be around 3e-12
 print('dx error: ', rel_error(dx_num, dx))
 
+<<<<<<< HEAD
 print(pool_param)
+=======
+
+>>>>>>> upstream/master
