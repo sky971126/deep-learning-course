@@ -399,11 +399,11 @@ def conv_backward(dout, cache):
 
 	for i in range(N):
 		for c in range(C):
-			temp = np.pad(dout[i,:,:,:],((0,0),(HH-1,HH-1),(WW-1,WW-1)),'constant')
-			for h_i in range(H):
-				for w_i in range(W):
-					dx[i,c,h_i,w_i] = np.sum(temp[:,h_i:h_i+HH,w_i:w_i+WW] * np.flip(w[:,c,:,:]))
-
+				temp = np.pad(dout[i,:,:,:],((0,0),(HH-1,HH-1),(WW-1,WW-1)),'constant')
+				for h_i in range(H):
+					for w_i in range(W):
+						dx[i,c,h_i,w_i] = np.sum(temp[:,h_i:h_i+HH,w_i:w_i+WW] * np.flip(w[:,c,:,:], (1,2)))
+						
 	###########################################################################
 	#                             END OF YOUR CODE                            #
 	###########################################################################
@@ -510,9 +510,8 @@ def svm_loss(x, y):
 	loss_array = 1 - x * y
 	loss_array[loss_array < 0] = 0
 	loss = np.sum(loss_array) / N
-	dx = -1 * y
+	dx = -1 * y / N
 	dx[loss_array == 0] = 0
-	#dx = np.expand_dims(dx, axis=1) / N
 	return loss, dx
 
 def logistic_loss(x, y):
