@@ -198,7 +198,7 @@ class Solver(object):
       N = num_samples
       X = X[mask]
       y = y[mask]
-
+    
     # Compute predictions in batches
     num_batches = N // batch_size
     if N % batch_size != 0:
@@ -214,7 +214,6 @@ class Solver(object):
         y_pred.append((scores > 0).astype(int))
     y_pred = np.hstack(y_pred)
     acc = np.mean(y_pred == y)
-
     return acc
 
 

@@ -71,16 +71,14 @@ class SVM(object):
 		# TODO: Implement the forward pass for the model, computing the            #
 		# scores for X and storing them in the scores variable.                    #
 		############################################################################
-		scores = self.params['W1'] * X + self.params['b1']
-
+		scores = np.sum(self.params['W1'] * X, 1) + self.params['b1']
 		############################################################################
 		#                             END OF YOUR CODE                             #
 		############################################################################
 
 		# If y is None then we are in test mode so just return scores
 		if y is None:
-			print(scores)
-			return (scores > 0.5).astype(int)
+			return scores
 
 		loss, grads = 0, {}
 		############################################################################
@@ -92,8 +90,8 @@ class SVM(object):
 		############################################################################
 		loss, dscore = svm_loss(scores, y)
 		loss += self.reg * (np.sum(self.params['W1']**2) + self.params['b1'] ** 2)
-		grads['W1'] = np.sum(dscore * X, 0) + self.reg * self.params['W1']
-		grads['b1'] = np.sum(dscore, 0) + self.reg * self.params['b1']
+		grads['W1'] = dscore.dot(X) + self.reg * self.params['W1']
+		grads['b1'] = np.sum(dscore) + self.reg * self.params['b1']
 		############################################################################
 		#                             END OF YOUR CODE                             #
 		############################################################################

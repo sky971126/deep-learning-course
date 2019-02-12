@@ -8,7 +8,6 @@ from svm import *
 
 with open('data.pkl', 'rb') as f:
     data_all = pickle.load(f, encoding='latin1')
-
 data = {
     'X_train': data_all[0][:500],
     'y_train': data_all[1][:500],
@@ -17,19 +16,20 @@ data = {
     'X_test': data_all[0][750:1000],
     'y_test': data_all[1][750:1000]
 }
-model = SVM(input_dim=data_all[0].shape[1], reg=0.1)
 
+
+model = SVM(input_dim=data_all[0].shape[1], reg=0.01)
 solver = Solver(model, data,
                 update_rule='sgd',
                 optim_config={
                 'learning_rate': 1e-2,
                 },
                 lr_decay=0.95,
-                num_epochs=10, batch_size=100,
-                print_every=100)
+                num_epochs=10, batch_size=3,
+                print_every=10)
 solver.train()
 
-"""
+
 x = np.array([[1,2,3],[4,5,6]])
 y = np.array([[1,0],[2,1],[3,0]])
 z = np.array([[1,2,3],[8,9,10]])
@@ -40,6 +40,5 @@ print(x.dot(y))
 a,b = y.shape
 print(np.mean(x,0))
 r = np.random.random_sample((5, 2))
-print(np.pad(x,((1,3),(2,2)),'constant'))
-print(np.sum(x**2))
-"""
+print(x.reshape(1,6))
+print(x)

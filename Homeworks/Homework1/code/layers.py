@@ -1,5 +1,6 @@
 from builtins import range
 import numpy as np
+import math
 
 
 def fc_forward(x, w, b):
@@ -507,6 +508,7 @@ def svm_loss(x, y):
 	- dx: Gradient of the loss with respect to x
 	"""
 	N = y.shape[0]
+	y[y==0] = -1
 	loss_array = 1 - x * y
 	loss_array[loss_array < 0] = 0
 	loss = np.sum(loss_array) / N
@@ -530,16 +532,30 @@ def logistic_loss(x, y):
 
 
 def softmax_loss(x, y):
-  """
-  Computes the loss and gradient for softmax classification.
-  Inputs:
-  - x: Input data, of shape (N, C) where x[i, j] is the score for the jth class
-    for the ith input.
-  - y: Vector of labels, of shape (N,) where y[i] is the label for x[i] and
-    0 <= y[i] < C
-  Returns a tuple of:
-  - loss: Scalar giving the loss
-  - dx: Gradient of the loss with respect to x
-  """
+	"""
+	Computes the loss and gradient for softmax classification.
+	Inputs:
+	- x: Input data, of shape (N, C) where x[i, j] is the score for the jth class
+		for the ith input.
+	- y: Vector of labels, of shape (N,) where y[i] is the label for x[i] and
+		0 <= y[i] < C
+	Returns a tuple of:
+	- loss: Scalar giving the loss
+	- dx: Gradient of the loss with respect to x
+	"""
+	N, C = x.shape
+	e_x = math.e ** x
+	e_x = e_x / np.sum(e_x, 1).reshape(N,1)
+	loss = 0
+	dx = e_x.copy()
 
-  return loss, dx
+	for i in range(N):
+		loss -= math.log(e_x[i,y[i]])
+		dx[i,y[i]] -= 1
+
+	loss /= N
+	dx /= N
+	
+	return loss, dx
+
+
