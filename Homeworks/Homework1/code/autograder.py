@@ -153,7 +153,7 @@ print('dx error: ', rel_error(dx_num, dx))
 
 
 
-# Logistic loss
+# Logistic loss (for {-1,1} labels), it's enough to pass one test from Logistic loss and Logistic loss alternative
 np.random.seed(498)
 num_classes, num_inputs = 1, 50
 x = 0.001 * np.random.randn(num_inputs,)
@@ -171,7 +171,24 @@ print('loss: ', loss)
 print('dx error: ', rel_error(dx_num, dx))
 
 
-# SVM loss
+# Logistic loss alternative (for {0,1} labels)
+np.random.seed(498)
+num_classes, num_inputs = 1, 50
+x = 0.001 * np.random.randn(num_inputs,)
+y = np.random.randint(num_classes + 1, size=num_inputs)
+
+
+dx_num = eval_numerical_gradient(lambda x: logistic_loss(x, y)[0], x, verbose=False)
+loss, dx = logistic_loss(x, y)
+
+# Test logistic_loss function. Loss should be 0.693 and dx error should be 6e-10
+print('\nTesting logistic_loss_alternative:')
+print('loss: ', loss)
+print('dx error: ', rel_error(dx_num, dx))
+
+
+
+# SVM loss (for {-1,1} labels), it's enough to pass one test from SVM loss and SVM loss alternative
 np.random.seed(498)
 num_classes, num_inputs = 1, 50
 x = 0.001 * np.random.randn(num_inputs,)
@@ -186,6 +203,24 @@ loss, dx = svm_loss(x, y)
 print('\nTesting svm_loss:')
 print('loss: ', loss)
 print('dx error: ', rel_error(dx_num, dx))
+
+
+# SVM loss alternative (for {0,1} labels)
+np.random.seed(498)
+num_classes, num_inputs = 1, 50
+x = 0.001 * np.random.randn(num_inputs,)
+y = np.random.randint(num_classes + 1, size=num_inputs)
+
+
+dx_num = eval_numerical_gradient(lambda x: svm_loss(x, y)[0], x, verbose=False)
+loss, dx = svm_loss(x, y)
+
+# Test svm_loss function. Loss should be 1.000 and dx error should be 3e-10
+print('\nTesting svm_loss_alternative:')
+print('loss: ', loss)
+print('dx error: ', rel_error(dx_num, dx))
+
+
 
 # Batchnorm foward
 x = np.linspace(-0.1, 0.5, num=6).reshape(2, 3)
@@ -357,4 +392,3 @@ dx = max_pool_backward(dout, cache)
 print('\nTesting max_pooling_backward function:')
 # The errors should be around 3e-12
 print('dx error: ', rel_error(dx_num, dx))
-

@@ -69,10 +69,10 @@ def train_model(device, dataloaders, dataset_sizes, model, criterion, optimizer,
                 # compule loss using the criterion function                                        #
                 ####################################################################################
             
-    
+
                 # backward + optimize only if in training phase
 
-            
+
                 ####################################################################################
                 #                             END OF YOUR CODE                                     #
                 ####################################################################################
@@ -102,7 +102,21 @@ def train_model(device, dataloaders, dataset_sizes, model, criterion, optimizer,
     return model
 
 
-def visualize_model(device, dataloaders, model, num_images=6):
+def imshow(inp, title=None):
+    """Imshow for Tensor."""
+    inp = inp.numpy().transpose((1, 2, 0))
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    inp = std * inp + mean
+    inp = np.clip(inp, 0, 1)
+    plt.imshow(inp)
+    if title is not None:
+        plt.title(title)
+    plt.savefig('tmp.png')
+    plt.pause(0.001)  # pause a bit so that plots are updated
+
+
+def visualize_model(device, dataloaders, model, class_names, num_images=6):
     was_training = model.training
     model.eval()
     images_so_far = 0
@@ -137,7 +151,7 @@ def visualize_model(device, dataloaders, model, num_images=6):
         model.train(mode=was_training)
 
 
-def finetune(device, dataloaders, dataset_sizes):
+def finetune(device, dataloaders, dataset_sizes, class_names):
     model_ft = models.resnet18(pretrained=True)
 
     ####################################################################################
@@ -146,7 +160,7 @@ def finetune(device, dataloaders, dataset_sizes):
     # Replace last layer in with a 2-label linear layer                                #
     ####################################################################################
     
-    
+
     ####################################################################################
     #                             END OF YOUR CODE                                     #
     ####################################################################################
@@ -175,9 +189,9 @@ def finetune(device, dataloaders, dataset_sizes):
     print('Finetune the model')
     model_ft = train_model(device, dataloaders, dataset_sizes, model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
 
-    visualize_model(model_ft)
+    visualize_model(device, dataloaders, model_ft, class_names)
 
-def freeze(device, dataloaders, dataset_sizes):
+def freeze(device, dataloaders, dataset_sizes, class_names):
     model_conv = torchvision.models.resnet18(pretrained=True)
 
     ####################################################################################
@@ -229,7 +243,7 @@ def freeze(device, dataloaders, dataset_sizes):
     print('Finetune the model')
     model_conv = train_model(device, dataloaders, dataset_sizes, model_conv, criterion, optimizer_conv, exp_lr_scheduler, num_epochs=25)
 
-    visualize_model(model_conv)
+    visualize_model(device, dataloaders, model_conv, class_names)
 
 def main():
     data_transforms = {
@@ -259,9 +273,9 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     print("Finetune the pre-trained model")
-    finetune(device, dataloaders, dataset_sizes)
+    finetune(device, dataloaders, dataset_sizes, class_names)
     print("Freeze the parameters in pre-trained model and train the final fc layer")
-    freeze(device, dataloaders, dataset_sizes)
+    freeze(device, dataloaders, dataset_sizes, class_names)
 
 if __name__== "__main__":
     main()

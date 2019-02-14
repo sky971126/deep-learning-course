@@ -153,6 +153,9 @@ def lstm_step_forward(x, prev_h, prev_c, Wx, Wh, b):
     #############################################################################
     # TODO: Implement the forward pass for a single timestep of an LSTM.        #
     # You may want to use the numerically stable sigmoid implementation above.  #
+    # For Wx of shape D x 4H, you may assume they are the sequence of parameters#
+    # for forget gate, input gate, concurrent input, output gate. Wh and b also #
+    # follow the same order.                                                    #
     #############################################################################
 
 
