@@ -1,0 +1,50 @@
+num_filters=5, hidden_dim=32 sgd 1e-3 epoch 10 batch size 10 N=10000
+(Epoch 10 / 10) train acc: 0.988000; val_acc: 0.963000
+
+num_filters=3, hidden_dim=16 sgd 1e-3 epoch 10 batch size 10 N=10000
+(Epoch 10 / 10) train acc: 0.980000; val_acc: 0.960000
+
+num_filters=3, hidden_dim=16 sgd 1e-3 epoch 10 batch size 10 N=50000
+(Epoch 10 / 10) train acc: 0.984000; val_acc: 0.976200
+
+1 e-2 0 90%  5e-3 0 48.9%
+2 N=50000 3e-3 0.000 70%
+3 e-2 no batch 0.01 11.2%
+4 5e-3 0.001? 35%
+5 N = 50000 3e-3 0.001 66%
+
+1N = 10000 1e-2 0.001 60%
+2 2e-2 70% ke
+3 3e-2 73%
+4 2e-2 reg = 0 71.4%
+5 1e-2 67.3%
+
+1 rmsprop
+
+3 decay = 0.8 no norm
+model = ConvNet(num_filters=3, hidden_dim=16, filter_size=7, reg=0.000)#kernel 1
+solver = Solver(model, data,
+                update_rule='sgd_momentum',
+                optim_config={
+                'learning_rate': 1e-3
+                },
+                lr_decay=0.8,
+                num_epochs=5, batch_size=10,
+                print_every=100)
+4 decay adam no norm
+
+5 adam with norm
+
+
+
+model = SVM(input_dim=data_all[0].shape[1], hidden_dim=32, reg=0.1)
+solver = Solver(model, data,
+                update_rule='adam',
+                optim_config={
+                'learning_rate': 1e-1,
+                },
+                lr_decay=0.9,
+                num_epochs=20, batch_size=50,
+                print_every=100)
+solver.train()
+(Epoch 20 / 20) train acc: 0.950000; val_acc: 0.916000
