@@ -27,6 +27,7 @@ class SVM(object):
 		"""
 		self.params = {}
 		self.reg = reg
+		self.hidden_dim = hidden_dim
 
 		############################################################################
 		# TODO: Initialize the weights and biases of the model. Weights            #
@@ -36,10 +37,12 @@ class SVM(object):
 		# weights and biases using the keys 'W1' and 'b1' and second layer weights #
 		# and biases (if any) using the keys 'W2' and 'b2'.                        #
 		############################################################################
-		self.params['W1'] = np.random.normal(loc=0.0, scale=weight_scale, size=input_dim)
+		self.params['W1'] = np.random.normal(loc=0.0, scale=weight_scale, size=(input_dim, 1))
 		self.params['b1'] = 0
 		if hidden_dim != None:
-			self.params['W2'] = np.random.normal(loc=0.0, scale=weight_scale, size=hidden_dim)
+			self.params['W1'] = np.random.normal(loc=0.0, scale=weight_scale, size=(input_dim, hidden_dim))
+			self.params['b1'] = np.zeros(hidden_dim)
+			self.params['W2'] = np.random.normal(loc=0.0, scale=weight_scale, size=(hidden_dim, 1))
 			self.params['b2'] = 0
 
 		############################################################################
@@ -71,14 +74,20 @@ class SVM(object):
 		# TODO: Implement the forward pass for the model, computing the            #
 		# scores for X and storing them in the scores variable.                    #
 		############################################################################
-		scores = np.sum(self.params['W1'] * X, 1) + self.params['b1']
+		if self.hidden_dim != None:
+			fc_1_out, fc_1_cache = fc_forward(X, self.params['W1'], self.params['b1'])
+			relu_out, relu_cache = relu_forward(fc_1_out)
+			scores, fc_2_cache = fc_forward(relu_out, self.params['W2'], self.params['b2'])
+		else:
+			scores, fc_1_cache = fc_forward(X, self.params['W1'], self.params['b1'])
+		
 		############################################################################
 		#                             END OF YOUR CODE                             #
 		############################################################################
 
 		# If y is None then we are in test mode so just return scores
 		if y is None:
-			return scores
+			return scores[:,0]
 
 		loss, grads = 0, {}
 		############################################################################
@@ -89,9 +98,18 @@ class SVM(object):
 		#                                                                          #
 		############################################################################
 		loss, dscore = svm_loss(scores, y)
-		loss += self.reg * (np.sum(self.params['W1']**2) + self.params['b1'] ** 2)
-		grads['W1'] = dscore.dot(X) + self.reg * self.params['W1']
-		grads['b1'] = np.sum(dscore) + self.reg * self.params['b1']
+		dscore = np.expand_dims(dscore, axis=1)
+		for i in self.params:
+			loss += 0.5 * self.reg * np.sum(self.params[i] ** 2)
+		if self.hidden_dim != None:
+			grads['relu_out'], grads['W2'], grads['b2'] = fc_backward(dscore, fc_2_cache)
+			grads['fc_1_out'] = relu_backward(grads['relu_out'], relu_cache)
+			_, grads['W1'], grads['b1'] = fc_backward(grads['fc_1_out'], fc_1_cache)
+		else:
+			_, grads['W1'], grads['b1'] = fc_backward(dscore, fc_1_cache)
+
+
+
 		############################################################################
 		#                             END OF YOUR CODE                             #
 		############################################################################

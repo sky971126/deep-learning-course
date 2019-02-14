@@ -360,12 +360,14 @@ def conv_forward(x, w):
 	F, C, HH, WW = w.shape
 	H_out = H - HH + 1
 	W_out = W - WW + 1
-	out = np.zeros([N,F,H_out,W_out])
+	out = np.zeros((N,F,H_out,W_out))
+
 	for i in range(N):
 		for f in range(F):
 			for h_i in range(H_out):
 				for w_i in range(W_out):
-					out[i,f,h_i,w_i] = np.sum(x[i,:,h_i:h_i+HH,w_i:w_i+WW] * w[f,:,:,:])
+					out[i,f,h_i,w_i] = np.dot(x[i,:,h_i:h_i+HH,w_i:w_i+WW].ravel(),w[f,:,:,:].ravel())
+	
 	###########################################################################
 	#                             END OF YOUR CODE                            #
 	###########################################################################
@@ -396,14 +398,14 @@ def conv_backward(dout, cache):
 		for c in range(C):
 			for h_i in range(HH):
 				for w_i in range(WW):
-					dw[f,c,h_i,w_i] = np.sum(dout[:,f,:,:] * x[:,c,h_i:h_i+H_out,w_i:w_i+W_out])
+					dw[f,c,h_i,w_i] = np.dot(dout[:,f,:,:].ravel(), x[:,c,h_i:h_i+H_out,w_i:w_i+W_out].ravel())
 
 	for i in range(N):
 		for c in range(C):
 				temp = np.pad(dout[i,:,:,:],((0,0),(HH-1,HH-1),(WW-1,WW-1)),'constant')
 				for h_i in range(H):
 					for w_i in range(W):
-						dx[i,c,h_i,w_i] = np.sum(temp[:,h_i:h_i+HH,w_i:w_i+WW] * np.flip(w[:,c,:,:], (1,2)))
+						dx[i,c,h_i,w_i] = np.dot(temp[:,h_i:h_i+HH,w_i:w_i+WW].ravel(), np.flip(w[:,c,:,:], (1,2)).ravel())
 						
 	###########################################################################
 	#                             END OF YOUR CODE                            #
@@ -441,15 +443,16 @@ def max_pool_forward(x, pool_param):
 	H_out = int(1 + (H - pool_height) / stride)
 	W_out = int(1 + (W - pool_width) / stride)
 	out = np.zeros([N, C, H_out, W_out])
-	for i in range(N):
-		for c in range(C):
-			for h_i in range(H_out):
-				for w_i in range(W_out):
-					h_start = h_i * stride
-					h_end = h_i * stride + pool_height
-					w_start = w_i * stride
-					w_end = w_i * stride + pool_width
-					out[i,c,h_i,w_i] = np.max(x[i,c,h_start:h_end,w_start:w_end])
+	
+
+	for h_i in range(H_out):
+		for w_i in range(W_out):
+			h_start = h_i * stride
+			h_end = h_i * stride + pool_height
+			w_start = w_i * stride
+			w_end = w_i * stride + pool_width
+			out[:,:,h_i,w_i] = np.max(x[:,:,h_start:h_end,w_start:w_end],(2,3))
+					
 	###########################################################################
 	#                             END OF YOUR CODE                            #
 	###########################################################################
@@ -508,27 +511,34 @@ def svm_loss(x, y):
 	- dx: Gradient of the loss with respect to x
 	"""
 	N = y.shape[0]
+	x_ravel = x.ravel()
 	y[y==0] = -1
-	loss_array = 1 - x * y
-	loss_array[loss_array < 0] = 0
+	loss_array = 1 - x_ravel * y
+	loss_array[loss_array< 0] = 0
 	loss = np.sum(loss_array) / N
 	dx = -1 * y / N
 	dx[loss_array == 0] = 0
 	return loss, dx
 
 def logistic_loss(x, y):
-  """
-  Computes the loss and gradient for binary classification with logistic 
-  regression.
-  Inputs:
-  - x: Input data, of shape (N,) where x[i] is the logit for the ith input.
-  - y: Vector of labels, of shape (N,) where y[i] is the label for x[i]
-  Returns a tuple of:
-  - loss: Scalar giving the loss
-  - dx: Gradient of the loss with respect to x
-  """
+	"""
+	Computes the loss and gradient for binary classification with logistic 
+	regression.
+	Inputs:
+	- x: Input data, of shape (N,) where x[i] is the logit for the ith input.
+	- y: Vector of labels, of shape (N,) where y[i] is the label for x[i]
+	Returns a tuple of:
+	- loss: Scalar giving the loss
+	- dx: Gradient of the loss with respect to x
+	"""
+	N = y.shape[0]
+	x_ravel = x.ravel()
+	x_ravel_sigmoid = 1 / (np.exp(-x_ravel) + 1)
 
-  return loss, dx
+	loss = -np.sum(y * np.log(x_ravel_sigmoid) + (1 - y) * np.log(1 - x_ravel_sigmoid) ) / N
+	dsigmoid = x_ravel_sigmoid * (1 - x_ravel_sigmoid)
+	dx = -(y / x_ravel_sigmoid + (y - 1) / (1 - x_ravel_sigmoid) ) * dsigmoid / N
+	return loss, dx
 
 
 def softmax_loss(x, y):
@@ -544,7 +554,7 @@ def softmax_loss(x, y):
 	- dx: Gradient of the loss with respect to x
 	"""
 	N, C = x.shape
-	e_x = math.e ** x
+	e_x = math.e ** (x)
 	e_x = e_x / np.sum(e_x, 1).reshape(N,1)
 	loss = 0
 	dx = e_x.copy()
@@ -555,7 +565,7 @@ def softmax_loss(x, y):
 
 	loss /= N
 	dx /= N
-	
+
 	return loss, dx
 
 

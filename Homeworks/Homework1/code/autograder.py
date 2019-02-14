@@ -150,7 +150,7 @@ print('\nTesting softmax_loss:')
 print('loss: ', loss)
 print('dx error: ', rel_error(dx_num, dx))
 
-"""
+
 
 
 # Logistic loss
@@ -171,7 +171,6 @@ print('loss: ', loss)
 print('dx error: ', rel_error(dx_num, dx))
 
 
-"""
 # SVM loss
 np.random.seed(498)
 num_classes, num_inputs = 1, 50
@@ -187,7 +186,6 @@ loss, dx = svm_loss(x, y)
 print('\nTesting svm_loss:')
 print('loss: ', loss)
 print('dx error: ', rel_error(dx_num, dx))
-
 
 # Batchnorm foward
 x = np.linspace(-0.1, 0.5, num=6).reshape(2, 3)

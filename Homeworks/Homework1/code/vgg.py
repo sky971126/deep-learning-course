@@ -20,29 +20,58 @@ class VGG(nn.Module):
             # Stage 1
             # TODO: convolutional layer, input channels 3, output channels 8, filter size 3
             # TODO: max-pooling layer, size 2
-            
+            nn.Conv2d(3, 16, 3, padding=1),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
             # Stage 2
             # TODO: convolutional layer, input channels 8, output channels 16, filter size 3
             # TODO: max-pooling layer, size 2
-            
+            nn.Conv2d(16, 32, 3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
             # Stage 3
             # TODO: convolutional layer, input channels 16, output channels 32, filter size 3
             # TODO: convolutional layer, input channels 32, output channels 32, filter size 3
             # TODO: max-pooling layer, size 2
-            
+            nn.Conv2d(32, 32, 3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, 3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
             # Stage 4
             # TODO: convolutional layer, input channels 32, output channels 64, filter size 3
             # TODO: convolutional layer, input channels 64, output channels 64, filter size 3
             # TODO: max-pooling layer, size 2
-
+            nn.Conv2d(32, 64, 3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
             # Stage 5
             # TODO: convolutional layer, input channels 64, output channels 64, filter size 3
             # TODO: convolutional layer, input channels 64, output channels 64, filter size 3
             # TODO: max-pooling layer, size 2
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
         )
         self.fc = nn.Sequential(
             # TODO: fully-connected layer (64->64)
             # TODO: fully-connected layer (64->10)
+            nn.Linear(64,64),
+            nn.Dropout(),
+            nn.ReLU(),
+            nn.Linear(64,10)
         )
 
     def forward(self, x):
@@ -53,7 +82,7 @@ class VGG(nn.Module):
 
 
 def train(trainloader, net, criterion, optimizer, device):
-    for epoch in range(10):  # loop over the dataset multiple times
+    for epoch in range(50):  # loop over the dataset multiple times
         start = time.time()
         running_loss = 0.0
         for i, (images, labels) in enumerate(trainloader):
@@ -63,9 +92,13 @@ def train(trainloader, net, criterion, optimizer, device):
             # TODO: forward pass
             # TODO: backward pass
             # TODO: optimize the network
-            
+            optimizer.zero_grad()
+            outputs = net(images)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
             # print statistics
-            # running_loss += loss.item()
+            running_loss += loss.item()
             if i % 100 == 99:    # print every 2000 mini-batches
                 end = time.time()
                 print('[epoch %d, iter %5d] loss: %.3f eplased time %.3f' %
