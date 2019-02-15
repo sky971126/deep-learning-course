@@ -207,7 +207,6 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     # Store the updated running means back into bn_param
     bn_param['running_mean'] = running_mean
     bn_param['running_var'] = running_var
-
     return out, cache
 
 
@@ -296,7 +295,7 @@ def dropout_forward(x, dropout_param):
 		#######################################################################
 		# TODO: Implement the test phase forward pass for inverted dropout.   #
 		#######################################################################
-		out = x
+		out = x * p
 		mask = None
 		#######################################################################
 		#                            END OF YOUR CODE                         #

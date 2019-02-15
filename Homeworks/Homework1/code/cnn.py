@@ -36,7 +36,7 @@ class ConvNet(object):
 		self.params = {}
 		self.reg = reg
 		self.dtype = dtype
-		self.batch_and_drop = True
+		self.batch_and_drop = False
 		self.weight_scale = weight_scale
 
 		############################################################################

@@ -15,7 +15,7 @@ images = np.array(images)
 labels = np.array(labels)
 X = images.reshape(60000,28*28)
 y = labels
-N = 50000
+N = 54000
 data = {
     'X_train': X[:N,:],
     'y_train': y[:N],
@@ -24,13 +24,13 @@ data = {
 }
 
 
-model = SoftmaxClassifier(hidden_dim=None, reg=0.01)
+model = SoftmaxClassifier(hidden_dim=64, reg=0.02)
 solver = Solver(model, data,
-                update_rule='adam',
+                update_rule='rmsprop',
                 optim_config={
-                'learning_rate': 1e-3,
+                'learning_rate': 1e-4,
                 },
-                lr_decay=0.95,
-                num_epochs=20, batch_size=50,
+                lr_decay=0.9,
+                num_epochs=50, batch_size=100,
                 print_every=1000)
 solver.train()

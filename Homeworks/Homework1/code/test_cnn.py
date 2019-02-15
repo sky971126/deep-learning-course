@@ -14,7 +14,7 @@ images = np.array(images)
 labels = np.array(labels)
 X = images.reshape(60000,1,28,28)
 y = labels
-N = 10000
+N = 54000
 data = {
     'X_train': X[:N,:,:,:],
     'y_train': y[:N],
@@ -23,13 +23,13 @@ data = {
 }
 
 
-model = ConvNet(num_filters=3, hidden_dim=16, filter_size=7, reg=0.000)#kernel 1
+model = ConvNet(num_filters=3, hidden_dim=16, filter_size=7, reg=0)#kernel 1
 solver = Solver(model, data,
                 update_rule='adam',
                 optim_config={
                 'learning_rate': 1e-3
                 },
                 lr_decay=0.95,
-                num_epochs=5, batch_size=10,
-                print_every=100)
+                num_epochs=10, batch_size=100,
+                print_every=10)
 solver.train()
