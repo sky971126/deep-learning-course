@@ -17,8 +17,8 @@ def main():
     # Experiment with vanilla RNN
     small_rnn_model = CaptioningRNN(
           cell_type='rnn',
-          word_to_idx=data['word_to_idx'],
-          input_dim=data['train_features'].shape[1],
+          word_to_idx=small_data['word_to_idx'],
+          input_dim=small_data['train_features'].shape[1],
           hidden_dim=512,
           wordvec_dim=256,
     )
@@ -46,10 +46,10 @@ def main():
     for split in ['train', 'val']:
         minibatch = sample_coco_minibatch(small_data, split=split, batch_size=2)
         gt_captions, features, urls = minibatch
-        gt_captions = decode_captions(gt_captions, data['idx_to_word'])
+        gt_captions = decode_captions(gt_captions, small_data['idx_to_word'])
 
         sample_captions = small_rnn_model.sample(features)
-        sample_captions = decode_captions(sample_captions, data['idx_to_word'])
+        sample_captions = decode_captions(sample_captions, small_data['idx_to_word'])
 
         for gt_caption, sample_caption, url in zip(gt_captions, sample_captions, urls):
             plt.imshow(image_from_url(url))
@@ -62,8 +62,8 @@ def main():
     # Experiment with LSTM
     small_lstm_model = CaptioningRNN(
           cell_type='lstm',
-          word_to_idx=data['word_to_idx'],
-          input_dim=data['train_features'].shape[1],
+          word_to_idx=small_data['word_to_idx'],
+          input_dim=small_data['train_features'].shape[1],
           hidden_dim=512,
           wordvec_dim=256,
           dtype=np.float32,
@@ -92,10 +92,10 @@ def main():
     for split in ['train', 'val']:
         minibatch = sample_coco_minibatch(small_data, split=split, batch_size=2)
         gt_captions, features, urls = minibatch
-        gt_captions = decode_captions(gt_captions, data['idx_to_word'])
+        gt_captions = decode_captions(gt_captions, small_data['idx_to_word'])
 
         sample_captions = small_lstm_model.sample(features)
-        sample_captions = decode_captions(sample_captions, data['idx_to_word'])
+        sample_captions = decode_captions(sample_captions, small_data['idx_to_word'])
 
         for gt_caption, sample_caption, url in zip(gt_captions, sample_captions, urls):
             plt.imshow(image_from_url(url))

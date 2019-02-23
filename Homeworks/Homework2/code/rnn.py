@@ -198,7 +198,7 @@ class CaptioningRNN(object):
         # (1) Embed the previous word using the learned word embeddings           #
         # (2) Make an RNN step using the previous hidden state and the embedded   #
         #     current word to get the next hidden state.                          #
-        # (3) Apply the learned affine transformation to the next hidden state to #
+        # (3) Apply the learned fc transformation to the next hidden state to #
         #     get scores for all words in the vocabulary                          #
         # (4) Select the word with the highest score as the next word, writing it #
         #     to the appropriate slot in the captions variable                    #
