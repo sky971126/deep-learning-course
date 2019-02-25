@@ -82,7 +82,6 @@ class CaptioningSolver(object):
         self.lr_decay = kwargs.pop('lr_decay', 1.0)
         self.batch_size = kwargs.pop('batch_size', 100)
         self.num_epochs = kwargs.pop('num_epochs', 10)
-
         self.print_every = kwargs.pop('print_every', 10)
         self.verbose = kwargs.pop('verbose', True)
 

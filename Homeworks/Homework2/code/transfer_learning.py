@@ -68,7 +68,7 @@ def train_model(device, dataloaders, dataset_sizes, model, criterion, optimizer,
                 # Perform feedforward operation using model, get the labels using torch.max, and   #
                 # compule loss using the criterion function                                        #
                 ####################################################################################
-            
+
 
                 # backward + optimize only if in training phase
 
@@ -80,6 +80,7 @@ def train_model(device, dataloaders, dataset_sizes, model, criterion, optimizer,
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
+
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
