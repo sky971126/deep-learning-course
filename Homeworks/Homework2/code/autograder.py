@@ -380,3 +380,19 @@ print('\nTesting temporal_fc_backward function:')
 print('dx error: ', rel_error(dx_num, dx))
 print('dw error: ', rel_error(dw_num, dw))
 print('db error: ', rel_error(db_num, db))
+
+
+#temporal_softmax_loss
+np.random.seed(498)
+N, T, V = 10, 6, 8
+x = 0.001 * np.random.randn(N, T, V)
+y = np.random.randint(V, size=(N, T))
+mask = np.random.randint(2, size=(N, T))
+
+dx_num = eval_numerical_gradient(lambda x: temporal_softmax_loss(x, y, mask)[0], x, verbose=False)
+loss, dx = temporal_softmax_loss(x, y, mask)
+
+# Test softmax_loss function. Loss should be 5.4 and dx error should be 2e-9
+print('\nTesting temporal_softmax_loss:')
+print('loss: ', loss)
+print('dx error: ', rel_error(dx_num, dx))
