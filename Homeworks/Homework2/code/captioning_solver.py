@@ -2,7 +2,7 @@ import numpy as np
 
 import optim
 from coco_utils import sample_coco_minibatch
-
+from bleu_utils import evaluate_model
 
 class CaptioningSolver(object):
     """
@@ -191,7 +191,7 @@ class CaptioningSolver(object):
         num_train = self.data['train_captions'].shape[0]
         iterations_per_epoch = max(num_train // self.batch_size, 1)
         num_iterations = self.num_epochs * iterations_per_epoch
-
+        evaluate_model(self.model)
         for t in range(num_iterations):
             self._step()
 
@@ -207,10 +207,10 @@ class CaptioningSolver(object):
                 self.epoch += 1
                 for k in self.optim_configs:
                     self.optim_configs[k]['learning_rate'] *= self.lr_decay
-
+                evaluate_model(self.model)
             # Check train and val accuracy on the first iteration, the last
             # iteration, and at the end of each epoch.
             # TODO: Implement some logic to check Bleu on validation set periodically
-
+        evaluate_model(self.model)
         # At the end of training swap the best params into the model
         # self.model.params = self.best_params

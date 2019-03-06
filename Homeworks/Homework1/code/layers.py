@@ -55,7 +55,7 @@ def fc_backward(dout, cache):
 	N = dout.shape[0]
 	dw = x.T.dot(dout)
 	dx = dout.dot(w.T)
-	db = np.ones([1, N]).dot(dout)
+	db = np.sum(dout,0)
 	###########################################################################
 	#                             END OF YOUR CODE                            #
 	###########################################################################

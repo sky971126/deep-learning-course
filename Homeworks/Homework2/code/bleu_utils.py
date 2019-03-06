@@ -1,3 +1,6 @@
+from coco_utils import *
+import nltk
+
 def BLEU_score(gt_caption, sample_caption):
     """
     gt_caption: string, ground-truth caption
@@ -16,8 +19,10 @@ def evaluate_model(model):
     model: CaptioningRNN model
     Prints unigram BLEU score averaged over 1000 training and val examples.
     """
+    BLEUscores = {}
     for split in ['train', 'val']:
-        minibatch = sample_coco_minibatch(med_data, split=split, batch_size=1000)
+        data = load_coco_data(max_train=1000)
+        minibatch = sample_coco_minibatch(data, split=split, batch_size=1000)
         gt_captions, features, urls = minibatch
         gt_captions = decode_captions(gt_captions, data['idx_to_word'])
 

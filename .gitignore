@@ -1,3 +1,5 @@
 data
 mnist
 cnn_param.txt
+coco_captioning
+glove

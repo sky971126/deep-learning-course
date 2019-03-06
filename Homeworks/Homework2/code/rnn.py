@@ -126,31 +126,46 @@ class CaptioningRNN(object):
         #     the points where the output word is <NULL> using the mask above.     #
         #                                                                          #
         # In the backward pass you will need to compute the gradient of the loss   #
-        # with respect to all model parameters. Use the loss and grads variables   #
+        # with respect to all( model parameters. Use the loss and grads variables   #
         # defined above to store loss and gradients; grads[k] should give the      #
         # gradients for self.params[k].                                            #
         ############################################################################
 
         # Forward Pass
-        # (1)
-        
-        # (2)
-        
+        # (1) N, H
+        fc_out, fc_cache = fc_forward(features, W_proj, b_proj)
+        # (2) N, T, D
+        embed_out, embed_cache = word_embedding_forward(captions_in, W_embed)
+        #T, N, D
+        embed_out_reshape = np.transpose(embed_out, (1,0,2))
         # (3)
-        
+        if self.cell_type == 'rnn':
+            # T, N, H
+            rnn_out, rnn_cache = rnn_forward(embed_out_reshape, fc_out, Wx, Wh, b)
+        else:
+            rnn_out, rnn_cache = lstm_forward(embed_out_reshape, fc_out, Wx, Wh, b)
+        # N, T, H
+        rnn_out_reshape = np.transpose(rnn_out, (1,0,2))
         # (4)
-        
+        #N, T, M
+        temp_fc_out, temp_fc_cache = temporal_fc_forward(rnn_out_reshape, W_vocab, b_vocab)
         # (5)
-
+        loss, dtemp_fc_out = temporal_softmax_loss(temp_fc_out, captions_out, mask)
 
         # Gradients
         # (4)
-        
+        drnn_out_reshape, grads['W_vocab'], grads['b_vocab'] = temporal_fc_backward(dtemp_fc_out, temp_fc_cache)
+        drnn_out = np.transpose(drnn_out_reshape, (1,0,2))
         # (3)
-        
+        if self.cell_type == 'rnn':
+            dembed_out_reshape, dfc_out, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(drnn_out, rnn_cache)
+        else:
+            dembed_out_reshape, dfc_out, grads['Wx'], grads['Wh'], grads['b'] = lstm_backward(drnn_out, rnn_cache)
+        dembed_out = np.transpose(dembed_out_reshape, (1,0,2))
         # (2)
-        
+        grads['W_embed'] = word_embedding_backward(dembed_out, embed_cache)
         # (1)
+        _, grads['W_proj'], grads['b_proj'] = fc_backward(dfc_out, fc_cache)
 
 
         ############################################################################
@@ -180,7 +195,8 @@ class CaptioningRNN(object):
           where each element is an integer in the range [0, V). The first element
           of captions should be the first sampled word, not the <START> token.
         """
-        N = features.shape[0]
+        N, D = features.shape
+        h = np.zeros((max_length, N, D))
         captions = self._null * np.ones((N, max_length), dtype=np.int32)
 
         # Unpack parameters
@@ -210,9 +226,20 @@ class CaptioningRNN(object):
         # functions; you'll need to call rnn_step_forward or lstm_step_forward in #
         # a loop.                                                                 #
         ###########################################################################
-
-
-
+        fc_out, _ = fc_forward(features, W_proj, b_proj)
+        prev_h = fc_out
+        caption = self._start
+        prev_c = np.zeros_like(prev_h)
+        for t in range(max_length):
+            embed_out, _ = word_embedding_forward(caption, W_embed)
+            if self.cell_type == 'rnn':
+                h[t,:,:], _ = rnn_step_forward(embed_out, prev_h, Wx, Wh, b)
+            else:
+                h[t,:,:], prev_c, _ = lstm_step_forward(embed_out, prev_h, prev_c, Wx, Wh, b)
+            temp_fc_out, _ = temporal_fc_forward(h[t,:,:], W_vocab, b_vocab)
+            caption = np.argmax(temp_fc_out, 1)
+            captions[:,t] = caption
+            prev_h = h[t,:,:]
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################

@@ -12,7 +12,7 @@ def main():
     # The dataset can be downloaded in https://drive.google.com/drive/folders/1zCq7kS9OXc2mgaOzDimAwiBblECWeBtO?usp=sharing
     # The dataset contains the feature of images in MSCOCO dataset      
     # Load COCO data from disk; this returns a dictionary
-    small_data = load_coco_data(max_train=50)
+    small_data = load_coco_data(max_train=1000)
     
     # Experiment with vanilla RNN
     small_rnn_model = CaptioningRNN(
@@ -25,7 +25,7 @@ def main():
 
     small_rnn_solver = CaptioningSolver(small_rnn_model, small_data,
            update_rule='adam',
-           num_epochs=50,
+           num_epochs=20,
            batch_size=25,
            optim_config={
              'learning_rate': 5e-3,
@@ -44,7 +44,7 @@ def main():
     plt.show()
 
     for split in ['train', 'val']:
-        minibatch = sample_coco_minibatch(small_data, split=split, batch_size=2)
+        minibatch = sample_coco_minibatch(small_data, split=split, batch_size=5)
         gt_captions, features, urls = minibatch
         gt_captions = decode_captions(gt_captions, small_data['idx_to_word'])
 
@@ -56,7 +56,7 @@ def main():
             plt.title('%s\n%s\nGT:%s' % (split, sample_caption, gt_caption))
             plt.axis('off')
             plt.show()
-
+    
     ##################################################################################################
     
     # Experiment with LSTM
@@ -71,7 +71,7 @@ def main():
 
     small_lstm_solver = CaptioningSolver(small_lstm_model, small_data,
            update_rule='adam',
-           num_epochs=50,
+           num_epochs=20,
            batch_size=25,
            optim_config={
              'learning_rate': 5e-3,
@@ -102,5 +102,6 @@ def main():
             plt.title('%s\n%s\nGT:%s' % (split, sample_caption, gt_caption))
             plt.axis('off')
             plt.show()
+    
 if __name__== "__main__":
     main()
