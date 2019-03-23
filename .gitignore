@@ -3,3 +3,7 @@ mnist
 cnn_param.txt
 coco_captioning
 glove
+att_faces
+att_faces.rar
+lfw_faces
+lfw_faces.rar
