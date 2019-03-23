@@ -7,9 +7,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import torchvision.utils
 import numpy as np
+np.random.seed(498)
 import random
+random.seed(498)
 from PIL import Image
 import torch
+torch.manual_seed(498)
 from torch.autograd import Variable
 import PIL.ImageOps    
 import torch.nn as nn
@@ -33,7 +36,7 @@ class Config():
     training_dir = "att_faces/training/"
     testing_dir = "att_faces/testing/"
     train_batch_size = 64
-    train_number_epochs = 100
+    train_number_epochs = 200
 
 class SiameseNetworkDataset(Dataset):
     
@@ -85,9 +88,51 @@ class SiameseNetwork(nn.Module):
     def __init__(self):
         super(SiameseNetwork, self).__init__()
         #TODO: design the architecture
+        # Conv(in_channel=1, out_channel=8, kernel_size=3, padding=1)
+        # MaxPool(kernel_size=2)
+        # ReLU
+        # BatchNorm
+        # Conv(in_channel=8, out_channel=16, kernel_size=3, padding=1)
+        # MaxPool(kernel_size=2)
+        # ReLU
+        # BatchNorm
+        # Conv(in_channel=16, out_channel=32, kernel_size=3, padding=1)
+        # MaxPool(kernel_size=2)
+        # ReLU
+        # BatchNorm
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, padding=1),
+            nn.MaxPool2d(kernel_size=2),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=8),
+            nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, padding=1),
+            nn.MaxPool2d(kernel_size=2),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=16),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1),
+            nn.MaxPool2d(kernel_size=2),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=32),
+        )
+        # Fully connected(out_features=1024)
+        # ReLU
+        # Fully connected(out_features=512)
+        # ReLU
+        # Fully connected(out_features=8)
+        self.fc = nn.Sequential(
+            nn.Linear(4608,1024),
+            nn.ReLU(),
+            nn.Linear(1024,512),
+            nn.ReLU(),
+            nn.Linear(512,8),
+        )
 
     def forward_once(self, x):
         #TODO: implement the forward pass to get features for input image
+        conv_out = self.conv(x)
+        N, _, _, _ = conv_out.shape
+        conv_out = conv_out.view(N,-1)
+        return self.fc(conv_out)
 
     def forward(self, input1, input2):
         output1 = self.forward_once(input1)
@@ -107,7 +152,10 @@ class ContrastiveLoss(torch.nn.Module):
 
     def forward(self, output1, output2, label):
         #TODO: argument output1 is f(x1), output2 is f(x2)
-        #calculate the contrasive loss and return it
+        # calculate the contrasive loss and return it
+        # Note that in this function we have batch of samples as input.
+        norm = torch.norm(output1 - output2)
+        return torch.sum((1-label) * norm + label * max(0, self.margin - torch.sqrt(norm)) ** 2)
 
 
 def evaluate(dataiter, net, split, device):
@@ -118,8 +166,9 @@ def evaluate(dataiter, net, split, device):
             concatenated = torch.cat((x0,x1),0)
             output1,output2 = net(Variable(x0).to(device),Variable(x1).to(device))
             euclidean_distance = F.pairwise_distance(output1, output2)
+            euclidean_distance = euclidean_distance.to('cpu')
             imshow(torchvision.utils.make_grid(concatenated),'%s, dissimilarity:%.2f'%(split, euclidean_distance.item())) 
-            plt.savefig('%s_%d_%d.png'%(split,i, j))
+            plt.savefig('siamese_result/%s_%d_%d.png'%(split,i, j))
             plt.close()
 
 
@@ -133,9 +182,11 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(siamese_dataset, shuffle=True, num_workers=10, batch_size=Config.train_batch_size)   
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    #device = torch.device('cpu')
+    torch.tensor([1], device=device)
     net = SiameseNetwork().to(device)
     criterion = ContrastiveLoss()
-    optimizer = optim.Adam(net.parameters(),lr = 0.0005)
+    optimizer = optim.Adam(net.parameters(),lr = 0.0001)
 
     counter = []
     loss_history = [] 
@@ -155,6 +206,9 @@ if __name__ == "__main__":
                 iteration_number +=10
                 counter.append(iteration_number)
                 loss_history.append(loss_contrastive.item())
+    plt.plot(loss_history)
+    plt.savefig('siamese_result/siamese_loss.png')
+    plt.close()
 
     train_dataloader = DataLoader(siamese_dataset, shuffle=False, num_workers=10, batch_size=1)
     dataiter = iter(train_dataloader)

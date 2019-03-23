@@ -199,7 +199,7 @@ def main():
     c = torch.eye(num_classes, num_classes) # [one hot labels for 0-9]
     c = to_var(c, use_cuda)
     z = to_var(torch.randn(num_classes, latent_size), use_cuda)
-    samples = model.generative_model(z, c).data.cpu().numpy()
+    samples = model.generation_model(z, c).data.cpu().numpy()
 
     fig = plt.figure(figsize=(10, 1))
     gs = gridspec.GridSpec(1, 10)

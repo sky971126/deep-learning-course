@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import random
+import time
 
 torch.manual_seed(1)
 word_to_ix = {}
@@ -44,12 +45,18 @@ def get_bow_vec_label(text, label):
                 bow_vec[t, word_to_ix[i]] = 1
             except:
                 pass
+    bow_vec = bow_vec
     labels = torch.FloatTensor(label)
     return bow_vec, labels
 
 def accuracy(out, labels):
     predictions = (out > 0.5)
-    print("accuracy: ", torch.mean((predictions.view(len(labels)).float() == labels).float()))
+    return torch.mean((predictions.view(len(labels)).float() == labels).float())
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cpu')
+torch.tensor([1], device=device)
+
 
 text, label = get_text_label('data/train.txt')
 get_vocab(text)
@@ -87,40 +94,63 @@ class BoWClassifier(nn.Module):  # inheriting from nn.Module!
         return torch.sigmoid(self.linear(bow_vec))
 
 
-net = BoWClassifier(VOCAB_SIZE)
+def train(net, epoch_num, batch_size, trainset, trainloader):
+    optimizer = optim.Adam(net.parameters(), lr=0.01)
+    for epoch in range(epoch_num):
+        start = time.time()
+        print("epoch ", epoch)
+        for data in trainloader:
+            x, y = data
+            x = x.to(device)
+            y = y.to(device)
+            optimizer.zero_grad() 
+            out = net.forward(x).view(-1)
+            loss = F.binary_cross_entropy(out, y)
+            loss.backward()
+            optimizer.step()
+        if epoch % 5 == 0 or epoch == epoch_num - 1:
+            with torch.no_grad():
+                total_accuracy = 0
+                total_accuracy_val = 0
+                for data in trainloader:
+                    x, y = data
+                    x = x.to(device)
+                    y = y.to(device)
+                    out = net.forward(x).view(-1)
+                    total_accuracy += accuracy(out, y)
+                print('train: ', total_accuracy / len(trainloader))
+        end = time.time()
+        print('eplased time', end-start)
+
+def test(net, batch_size, testset, testloader):
+    with torch.no_grad():
+        total_accuracy = 0
+        for data in testloader:
+            x, y = data
+            x = x.to(device)
+            y = y.to(device)
+            out = net.forward(x)
+            total_accuracy += accuracy(out, y)
+        print('test: ', total_accuracy / len(testloader))
+
+net = BoWClassifier(VOCAB_SIZE).to(device)
 net.zero_grad()
 
-optimizer = optim.ASGD(net.parameters(), lr=0.01)
-num_epochs = 300
-batch_size = 10
-batch_num = N // batch_size
-for epoch in range(num_epochs):
-    print("epoch ", epoch)
-    rand_list = torch.randperm(N)
-    for i in range(batch_num):
-        optimizer.zero_grad() 
-        out = net.forward(bow_vec[rand_list[i * batch_size:(i+1) * batch_size],:])
-        loss = F.mse_loss(out, labels[rand_list[i * batch_size:(i+1) * batch_size]])
-        loss.backward()
-        optimizer.step()
-    if epoch % 20 == 0 or epoch == num_epochs - 1:
-        with torch.no_grad():
-            out = net.forward(bow_vec)
-            print('train: ', F.mse_loss(out, labels))
-            accuracy(out, labels)
-            out_val = net.forward(bow_vec_val)
-            print('val: ', F.mse_loss(out_val, labels_val))
-            accuracy(out_val, labels_val)
+epoch_num = 50
+batch_size = 1000
+trainset = torch.utils.data.TensorDataset(bow_vec, labels)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 
-with torch.no_grad():
-    out = net.forward(bow_vec_test)
-    print('test: ', F.mse_loss(out, labels_test))
-    accuracy(out, labels_test)
+testset = torch.utils.data.TensorDataset(bow_vec_test, labels_test)
+testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
 
+train(net, epoch_num, batch_size, trainset, trainloader)
+test(net, batch_size, testset, testloader)
 
 bow_vec_unlabel ,_ = get_bow_vec_label(unlabel_text, label)
+bow_vec_unlabel = bow_vec_unlabel.to(device)
 out = net.forward(bow_vec_unlabel)
 out = out > 0.5
-with open('data/result.txt', 'w') as f:
+with open('data/result_1.txt', 'w') as f:
     for i in out:
         f.write(str(i)[8] + "\n")

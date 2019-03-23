@@ -125,7 +125,9 @@ def test(testloader, net, device):
 
 
 def main():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda: 0' if torch.cuda.is_available() else 'cpu')
+    print(torch.cuda.is_available())
+    torch.tensor([1], device=device)
     #device = torch.device('cpu')
     transform = transforms.Compose(
         [transforms.ToTensor(),

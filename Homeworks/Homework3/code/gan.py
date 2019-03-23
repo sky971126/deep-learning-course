@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn import init
 from torch.autograd import Variable
+import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as T
 import torch.optim as optim
@@ -34,6 +35,7 @@ def show_images(images):
         ax.set_yticklabels([])
         ax.set_aspect('equal')
         plt.imshow(img.reshape([sqrtimg,sqrtimg]))
+        plt.savefig('gan_result/%d.png'%(i))
     return 
 
 
@@ -113,7 +115,7 @@ def sample_noise(batch_size, dim):
     ###########################
     ######### TO DO ###########
     ###########################
-    random_noise = None
+    random_noise = torch.tensor(np.random.uniform(low=0.0, high=1.0, size=(batch_size,dim)))
     return random_noise
 
 
@@ -137,6 +139,16 @@ def build_discriminator(batch_size):
         ######### TO DO ###########
         ###########################
         Unflatten(batch_size, 1, 28, 28),
+        nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.MaxPool2d(kernel_size=2, stride=2),
+        nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.MaxPool2d(kernel_size=2, stride=2),
+        Flatten(),
+        nn.Linear(1024, 1024),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Linear(1024, 1)
     )
 
 
@@ -163,6 +175,19 @@ def build_generator(batch_size, noise_dim):
         ###########################
         ######### TO DO ###########
         ###########################
+        nn.Linear(noise_dim, 1024),
+        nn.ReLU(),
+        nn.BatchNorm1d(1024),
+        nn.Linear(1024, 6272),
+        nn.ReLU(),
+        nn.BatchNorm1d(6272),
+        Unflatten(batch_size, 128, 7, 7),
+        torch.nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1),
+        nn.ReLU(),
+        nn.BatchNorm2d(64),
+        torch.nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=4, stride=2, padding=1),
+        nn.Tanh(),
+        Flatten()
     )
 
 
@@ -180,7 +205,7 @@ def get_optimizer(model):
     ###########################
     ######### TO DO ###########
     ###########################
-    optimizer = None
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.5, 0.999))
     return optimizer
 
 
@@ -202,8 +227,8 @@ def bce_loss(input, target):
     ###########################
     ######### TO DO ###########
     ###########################
-    loss = None
-    return loss
+    loss = F.relu(input) - input * target + torch.log(1 + torch.exp(-abs(input)))
+    return torch.mean(loss)
 
 
 def discriminator_loss(logits_real, logits_fake, dtype):
@@ -221,7 +246,8 @@ def discriminator_loss(logits_real, logits_fake, dtype):
     ###########################
     ######### TO DO ###########
     ###########################
-    loss = None
+    loss = bce_loss(logits_real, torch.ones(logits_real.shape).type(dtype)) +\
+        bce_loss(logits_fake, torch.zeros(logits_fake.shape).type(dtype))
     return loss
 
 
@@ -239,7 +265,7 @@ def generator_loss(logits_fake, dtype):
     ###########################
     ######### TO DO ###########
     ###########################
-    loss = None
+    loss = bce_loss(logits_fake, torch.ones(logits_fake.shape).type(dtype))
     return loss
 
 
@@ -297,7 +323,6 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss,
 
 
 def main():
-
     NUM_TRAIN = 50000
     NUM_VAL = 5000
     
@@ -320,7 +345,7 @@ def main():
     show_images(imgs)
 
     dtype = torch.FloatTensor
-#    dtype = torch.cuda.FloatTensor ## UNCOMMENT THIS LINE IF YOU'RE ON A GPU!
+    dtype = torch.cuda.FloatTensor ## UNCOMMENT THIS LINE IF YOU'RE ON A GPU!
 
     D_DC = build_discriminator(batch_size).type(dtype) 
     D_DC.apply(initialize_weights)
