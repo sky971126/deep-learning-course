@@ -56,7 +56,7 @@ def accuracy(out, labels):
     return torch.mean((predictions.view(len(labels)).float() == labels).float())
 
 def train(net, epoch_num, batch_size, trainset, trainloader):
-    optimizer = optim.Adam(net.parameters(), lr=0.01)
+    optimizer = optim.Adam(net.parameters(), lr=0.005, weight_decay=0.0005)
     for epoch in range(epoch_num):
         start = time.time()
         print("epoch ", epoch)
@@ -81,7 +81,7 @@ def train(net, epoch_num, batch_size, trainset, trainloader):
                     mask = mask.to(device)
                     out = net.forward(x, mask)
                     total_accuracy += accuracy(out, y)
-                print('train: ', total_accuracy / len(trainloader))
+                print('train: ', round(100 * total_accuracy.item() / len(trainloader), 2), '%')
         end = time.time()
         print('eplased time', end-start)
 
@@ -95,7 +95,7 @@ def test(net, batch_size, testset, testloader):
             mask = mask.to(device)
             out = net.forward(x, mask)
             total_accuracy += accuracy(out, y)
-        print('test: ', total_accuracy / len(testloader))
+        print('test: ', round(100 * total_accuracy.item() / len(testloader), 2), '%')
 
 class CNN(nn.Module):
 
@@ -128,7 +128,7 @@ labels_test = torch.FloatTensor(label_test)
 L = max_len(text)
 VOCAB_SIZE = len(word_to_ix)
 in_channel = 300
-out_channel = 50
+out_channel = 256
 kernel_size = 7
 lookup_tensor, mask = get_lookup(text, L, in_channel)
 lookup_tensor_test, mask_test = get_lookup(text_test, L, in_channel)
@@ -137,16 +137,15 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #device = torch.device('cpu')
 torch.tensor([1], device=device)
 
-net = CNN(VOCAB_SIZE, in_channel, out_channel, kernel_size, average=False).to(device)
+net = CNN(VOCAB_SIZE, in_channel, out_channel, kernel_size, average=True).to(device)
 net.zero_grad()
 
-epoch_num = 10
+epoch_num = 50
 batch_size = 500
 
 trainset = torch.utils.data.TensorDataset(lookup_tensor, labels, mask)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 train(net, epoch_num, batch_size, trainset, trainloader)
-
 
 testset = torch.utils.data.TensorDataset(lookup_tensor_test, labels_test, mask_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)

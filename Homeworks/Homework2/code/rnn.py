@@ -126,7 +126,7 @@ class CaptioningRNN(object):
         #     the points where the output word is <NULL> using the mask above.     #
         #                                                                          #
         # In the backward pass you will need to compute the gradient of the loss   #
-        # with respect to all( model parameters. Use the loss and grads variables   #
+        # with respect to all( model parameters. Use the loss and grads variables  #
         # defined above to store loss and gradients; grads[k] should give the      #
         # gradients for self.params[k].                                            #
         ############################################################################

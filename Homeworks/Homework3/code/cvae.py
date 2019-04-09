@@ -26,7 +26,10 @@ class CVAE(nn.Module):
         ### Define a three layer neural network architecture #
         ### for the recognition_model                        #
         ######################################################
-
+        self.fc1 = nn.Linear(input_size + class_size, self.units)
+        self.fc2 = nn.Linear(self.units, self.units)
+        self.layer_mu = nn.Linear(self.units, latent_size)
+        self.layer_logvar = nn.Linear(self.units, latent_size)
         ######################################################
         ###               END OF YOUR CODE                 ###
         ######################################################
@@ -40,7 +43,9 @@ class CVAE(nn.Module):
         ### Define a three layer neural network architecture #
         ### for the generation_model                         #
         ######################################################
-
+        self.fc3 = nn.Linear(latent_size + class_size, self.units)
+        self.fc4 = nn.Linear(self.units, self.units)
+        self.layer_output = nn.Linear(self.units, input_size)
         ######################################################
         ###               END OF YOUR CODE                 ###
         ######################################################
@@ -64,8 +69,10 @@ class CVAE(nn.Module):
         ###########################
         ######### TO DO ###########
         ###########################
-        mu = None
-        logvar = None
+        h1 = F.relu(self.fc1(torch.cat((x,c),-1)))
+        h2 = F.relu(self.fc2(h1))
+        mu = self.layer_mu(h2)
+        logvar = self.layer_logvar(h2)
         return mu, logvar
 
 
@@ -89,7 +96,9 @@ class CVAE(nn.Module):
         ###########################
         ######### TO DO ###########
         ###########################
-        x_hat = None
+        h3 = F.relu(self.fc3(torch.cat((z,c),-1)))
+        h4 = F.relu(self.fc4(h3))
+        x_hat = F.sigmoid(self.layer_output(h4))
         return x_hat
 
     def forward(self, x, c):
@@ -110,9 +119,9 @@ class CVAE(nn.Module):
         ###########################
         ######### TO DO ###########
         ###########################
-        x_hat = None
-        mu = None
-        logvar = None
+        mu, logvar = self.recognition_model(x.view(-1, self.input_size), c)
+        z = self.reparametrize(mu, logvar)
+        x_hat = self.generation_model(z,c)
         return x_hat, mu, logvar
 
 
@@ -166,13 +175,14 @@ def loss_function(x_hat, x, mu, logvar):
     ###########################
     ######### TO DO ###########
     ###########################
-    loss = None
-    return loss
+    BCE = F.binary_cross_entropy(x_hat, x, size_average=False)
+    DKL = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return (BCE + DKL) / x.shape[0]
 
 
 def main():
     # Load MNIST dataset
-    use_cuda = False
+    use_cuda = True
     input_size = 28 * 28
     units = 400
     batch_size = 32
